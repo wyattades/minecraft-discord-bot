@@ -9,7 +9,7 @@ const discordClient = new discord.Client({
 
 let statusCache = null;
 
-const pollingInterval = 10000;
+const pollingInterval = config.polling_interval ?? 10000;
 
 const statusDifferent = (prev, next) => {
   if (prev.online !== next.online) return true;
