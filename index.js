@@ -1,7 +1,16 @@
 const mcServerUtil = require("minecraft-server-util");
 const discord = require("discord.js");
 
-const config = require("./config.json");
+let config;
+try {
+  config = require("./config.json");
+} catch (_) {}
+if (typeof config?.bot_token !== "string") {
+  console.error(
+    'A file "config.json" must exist with the key "bot_token" set to a string.'
+  );
+  process.exit(1);
+}
 
 const discordClient = new discord.Client({
   intents: [],
@@ -17,28 +26,47 @@ const statusDifferent = (prev, next) => {
   return false;
 };
 
-const updateBotStatus = async ({ playersOnline, online }) => {
-  console.log("Updating bot status:", { playersOnline, online });
+// const updateBotDetails = async ({ avatar, username }) => {
+//   await discordClient.user.setAvatar(avatar);
+//   await discordClient.user.setUsername(username);
+// };
 
+const updateBotStatus = async ({
+  online,
+  playersOnline,
+  samplePlayerNames,
+}) => {
+  console.log("Updating bot status:", {
+    online,
+    playersOnline,
+    samplePlayerNames,
+  });
+
+  let status, message;
   if (online) {
     if (playersOnline > 0) {
-      await discordClient.user.setActivity(
-        `${playersOnline} player${playersOnline === 1 ? "" : "s"} online`,
-        {
-          type: "PLAYING",
-        }
-      );
-      await discordClient.user.setStatus("online");
+      status = "online";
+      message = `${playersOnline} player${
+        playersOnline === 1 ? "" : "s"
+      } online`;
     } else {
-      await discordClient.user.setActivity("No one online ☹️", {
-        type: "PLAYING",
-      });
-      await discordClient.user.setStatus("idle");
+      status = "idle";
+      message = "No one online ☹";
     }
   } else {
-    await discordClient.user.setActivity("Offline 🛑", { type: "PLAYING" });
-    await discordClient.user.setStatus("dnd");
+    status = "dnd";
+    message = "Offline 🛑";
   }
+
+  await discordClient.user.setPresence({
+    status,
+    activities: [
+      {
+        type: "PLAYING",
+        name: message,
+      },
+    ],
+  });
 
   console.log("Bot updated.");
 };
@@ -58,12 +86,17 @@ const run = async () => {
 
   setInterval(async () => {
     const serverStatus = await mcServerUtil
-      .status(config.mcserver_address, config.mcserver_port ?? 25565)
+      .status(
+        config.mcserver_address ?? "localhost",
+        config.mcserver_port ?? 25565
+      )
       .then((s) => ({
+        samplePlayerNames: s.players.sample?.map((p) => p.name) || [],
         playersOnline: s.players.online,
         online: true,
       }))
       .catch(() => ({
+        samplePlayerNames: null,
         playersOnline: null,
         online: false,
       }));
