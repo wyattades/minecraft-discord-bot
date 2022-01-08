@@ -50,10 +50,10 @@ const updateBotStatus = async ({
       status = "online";
       message = `${playersOnline} player${
         playersOnline === 1 ? "" : "s"
-      } online`;
+      } online :bite:`;
     } else {
       status = "idle";
-      message = "No one online ☹";
+      message = "No one online 😿";
     }
   } else {
     status = "dnd";
