@@ -5,20 +5,22 @@ let config;
 try {
   config = require("./config.json");
 } catch (_) {}
-if (typeof config?.bot_token !== "string") {
+config ||= {};
+if (typeof config.bot_token !== "string") {
   console.error(
     'A file "config.json" must exist with the key "bot_token" set to a string.'
   );
   process.exit(1);
 }
+config.mcserver_address ||= "localhost";
+config.mcserver_port ||= 25565;
+config.polling_interval ||= 10000;
 
 const discordClient = new discord.Client({
   intents: [],
 });
 
 let statusCache = null;
-
-const pollingInterval = config.polling_interval ?? 10000;
 
 const statusDifferent = (prev, next) => {
   if (prev.online !== next.online) return true;
@@ -86,10 +88,7 @@ const run = async () => {
 
   setInterval(async () => {
     const serverStatus = await mcServerUtil
-      .status(
-        config.mcserver_address ?? "localhost",
-        config.mcserver_port ?? 25565
-      )
+      .status(config.mcserver_address, config.mcserver_port)
       .then((s) => ({
         samplePlayerNames: s.players.sample?.map((p) => p.name) || [],
         playersOnline: s.players.online,
@@ -108,7 +107,7 @@ const run = async () => {
 
       statusCache = serverStatus;
     }
-  }, pollingInterval);
+  }, config.polling_interval);
 };
 
 run().catch((err) => {
