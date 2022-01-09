@@ -1,8 +1,7 @@
-const path = require("path");
-const fs = require("fs");
-const _ = require("lodash");
+import * as fs from "fs";
 
-const { z } = require("zod");
+import _ from "lodash";
+import { z } from "zod";
 
 const configSchema = z.object({
   bot_token: z.string().nonempty(),
@@ -12,12 +11,10 @@ const configSchema = z.object({
   polling_interval: z.number().default(10000),
 });
 
-const getConfig = _.memoize((pathname = "config.json") => {
+export const getConfig = _.memoize((pathname = "config.json") => {
   let rawConfig;
   try {
-    rawConfig = JSON.parse(
-      fs.readFileSync(path.join(__dirname, pathname), "utf-8")
-    );
+    rawConfig = JSON.parse(fs.readFileSync(pathname, "utf-8"));
   } catch (_err) {
     console.error(`The file "${pathname}" must exist`);
     process.exit(1);
@@ -42,5 +39,3 @@ const getConfig = _.memoize((pathname = "config.json") => {
     process.exit(1);
   }
 });
-
-exports.getConfig = getConfig;

@@ -1,24 +1,17 @@
-const discord = require("discord.js");
-const { REST } = require("@discordjs/rest");
-const { Routes } = require("discord-api-types/v9");
+import discord from "discord.js";
+import { REST } from "@discordjs/rest";
+import { Routes } from "discord-api-types/v9";
 
-const { getConfig } = require("./getConfig");
-const { getMcStatus } = require("./mcStatus");
-const { commands } = require("./commands");
+import { getConfig } from "./getConfig.mjs";
+import { getMcStatus } from "./mcStatus.mjs";
+import { commands } from "./commands.mjs";
+import { subscribeToMcStatus } from "./mcStatus.mjs";
 
 const discordClient = new discord.Client({
   intents: [],
 });
 
 const restApi = new REST({ version: "9" }).setToken(getConfig().bot_token);
-
-let statusCache = null;
-
-const statusDifferent = (prev, next) => {
-  if (prev.online !== next.online) return true;
-  if (prev.playersOnline !== next.playersOnline) return true;
-  return false;
-};
 
 // const updateBotDetails = async ({ avatar, username }) => {
 //   await discordClient.user.setAvatar(avatar);
@@ -97,20 +90,6 @@ const setupGuilds = async () => {
   );
 };
 
-const setupStatusPolling = () => {
-  setInterval(async () => {
-    const serverStatus = await getMcStatus();
-
-    if (!statusCache || statusDifferent(statusCache, serverStatus)) {
-      updateBotStatus(serverStatus).catch((err) => {
-        console.error("failed to update bot status", err);
-      });
-
-      statusCache = serverStatus;
-    }
-  }, getConfig().polling_interval);
-};
-
 const run = async () => {
   discordClient.on("error", (err) => {
     console.error("discord client error:", err);
@@ -121,7 +100,7 @@ const run = async () => {
   console.log("Discord bot client is online!\n");
 
   setupGuilds();
-  setupStatusPolling();
+  subscribeToMcStatus(updateBotStatus);
 };
 
 run().catch((err) => {

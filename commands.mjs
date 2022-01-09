@@ -1,13 +1,15 @@
-const { SlashCommandBuilder } = require("@discordjs/builders");
+import { SlashCommandBuilder } from "@discordjs/builders";
 
-const commands = [
+import { getMcStatusCache } from "./mcStatus.mjs";
+
+export const commands = [
   {
     builder: new SlashCommandBuilder()
       .setName("mcstatus")
       .setDescription("View the status of the Minecraft server"),
 
     onInteraction: async () => {
-      if (!statusCache) {
+      if (!getMcStatusCache()?.online) {
         await interaction.reply({
           embeds: [
             new discord.MessageEmbed()
@@ -19,8 +21,6 @@ const commands = [
           ],
         });
       } else {
-        const names = statusCache?.samplePlayerNames;
-
         await interaction.reply({
           embeds: [
             new discord.MessageEmbed()
@@ -32,9 +32,12 @@ const commands = [
                 }`
               )
               .setURL("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
-              .addField("Players:", names.join(", ") || "none")
-              .addField("MOTD:", statusCache.motd || "none")
-              .addField("MC Version:", statusCache.mcVersion || "???")
+              .addField(
+                "Players:",
+                getMcStatusCache().samplePlayerNames.join(", ") || "none"
+              )
+              .addField("MOTD:", getMcStatusCache().motd || "none")
+              .addField("MC Version:", getMcStatusCache().mcVersion || "???")
               .setImage(
                 "https://external-content.duckduckgo.com/iu/?u=http%3A%2F%2Fi0.kym-cdn.com%2Fphotos%2Fimages%2Foriginal%2F001%2F289%2F984%2F425.png&f=1&nofb=1"
               ),
@@ -44,5 +47,3 @@ const commands = [
     },
   },
 ];
-
-exports.commands = commands;

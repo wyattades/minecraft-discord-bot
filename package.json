@@ -1,8 +1,8 @@
 {
   "scripts": {
-    "start": "node .",
-    "dev": "npm install --no-fund && nodemon .",
-    "print-status": "node -e 'require(\"./mcStatus\").printMcStatus()'"
+    "start": "node ./index.mjs",
+    "dev": "npm install --no-fund && nodemon ./index.mjs",
+    "print-status": "node -e \"(import('./mcStatus.mjs')).then(m => m.printMcStatus())\""
   },
   "dependencies": {
     "@discordjs/builders": "^0.11.0",

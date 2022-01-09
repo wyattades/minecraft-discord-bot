@@ -1,8 +1,33 @@
-const mcServerUtil = require("minecraft-server-util");
+import mcServerUtil from "minecraft-server-util";
 
-const { getConfig } = require("./getConfig");
+import { getConfig } from "./getConfig.mjs";
 
-const getMcStatus = async (
+let statusCache = null;
+export const getMcStatusCache = () => statusCache;
+
+const isStatusDifferent = (prev, next) => {
+  if (prev.online !== next.online) return true;
+  if (prev.playersOnline !== next.playersOnline) return true;
+  return false;
+};
+
+export const subscribeToMcStatus = (cb) => {
+  const interval = setInterval(async () => {
+    const serverStatus = await getMcStatus();
+
+    if (!statusCache || isStatusDifferent(statusCache, serverStatus)) {
+      statusCache = serverStatus;
+
+      cb(serverStatus);
+    }
+  }, getConfig().polling_interval);
+
+  return () => {
+    clearInterval(interval);
+  };
+};
+
+export const getMcStatus = async (
   host = getConfig().mcserver_address,
   port = getConfig().mcserver_port
 ) => {
@@ -26,9 +51,8 @@ const getMcStatus = async (
     };
   }
 };
-exports.getMcStatus = getMcStatus;
 
-const printMcStatus = async () => {
+export const printMcStatus = async () => {
   console.log(
     `Querying ${getConfig().mcserver_address}:${getConfig().mcserver_port}...\n`
   );
@@ -49,5 +73,3 @@ const printMcStatus = async () => {
     `${serverStatus.samplePlayerNames?.join(", ") || ""}`
   );
 };
-
-exports.printMcStatus = printMcStatus;
