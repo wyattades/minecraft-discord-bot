@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "npm install --no-fund && node .",
+    "start": "node .",
     "dev": "npm install --no-fund && nodemon .",
     "print-status": "node -e 'require(\"./mcStatus\").printMcStatus()'"
   },
